@@ -68,14 +68,13 @@ public class OpenSearchConfig {
     }
     
     private void findParametersAndAppendToUrl(Parameter parameter, StringBuilder urlTemplate) {
-        MethodParameter methodParameter = MethodParameter.forParameter(parameter);
-        
-        OpenSearchTemplateParameter openSearchTemplateParameter = methodParameter.getMethodAnnotation(OpenSearchTemplateParameter.class);
-        RequestParam requestParam = methodParameter.getMethodAnnotation(RequestParam.class);
+        OpenSearchTemplateParameter openSearchTemplateParameter = parameter.getAnnotation(OpenSearchTemplateParameter.class);
+        RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
         
         if(requestParam != null && !StringUtils.isEmpty(requestParam.name())) {
             urlTemplate.append(requestParam.name());
         } else {
+            MethodParameter methodParameter = MethodParameter.forParameter(parameter);
             methodParameter.initParameterNameDiscovery(new DefaultParameterNameDiscoverer());
             urlTemplate.append(methodParameter.getParameterName());
         }
@@ -97,7 +96,7 @@ public class OpenSearchConfig {
         
         // RequestMapping in method
         RequestMapping methodMapping = method.getAnnotation(RequestMapping.class);
-        if(controllerMapping != null) {
+        if(methodMapping != null) {
             String[] value = methodMapping.value();
             if(value.length > 0) {
                 sb.append(value[0]);

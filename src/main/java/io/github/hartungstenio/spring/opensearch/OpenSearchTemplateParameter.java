@@ -1,14 +1,13 @@
 package io.github.hartungstenio.spring.opensearch;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
-@Target({ TYPE, METHOD })
+@Target(ElementType.PARAMETER)
 public @interface OpenSearchTemplateParameter {
-    String name();
+    String name() default "searchTerms";
 }

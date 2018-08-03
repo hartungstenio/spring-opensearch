@@ -13,14 +13,14 @@ public @interface OpenSearchProvider {
     
     String shortName();
     String description();
-    String contact();
-    String tags();
-    String longName();
-    String developer();
-    String attribution();
-    SyndicationRights syndicationRight();
-    boolean adultContent();
-    String[] language();
-    String[] inputEncoding();
-    String[] outputEncoding();
+    String contact() default "";
+    String tags() default "";
+    String longName() default "";
+    String developer() default "";
+    String attribution() default "";
+    SyndicationRights syndicationRight() default SyndicationRights.OPEN;
+    boolean adultContent() default false;
+    String[] language() default {};
+    String[] inputEncoding() default {};
+    String[] outputEncoding() default {};
 }
