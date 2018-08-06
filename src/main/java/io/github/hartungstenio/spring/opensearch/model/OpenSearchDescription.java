@@ -1,11 +1,16 @@
 package io.github.hartungstenio.spring.opensearch.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "OpenSearchDescription", namespace="http://a9.com/-/spec/opensearch/1.1/")
+@XmlRootElement(name = "OpenSearchDescription")
 public final class OpenSearchDescription {
     
     private final String shortName;
@@ -23,6 +28,14 @@ public final class OpenSearchDescription {
     private final List<String> language;
     private final List<String> inputEncoding;
     private final List<String> outputEncoding;
+    
+    public OpenSearchDescription(final String shortName, final String description, final OpenSearchUrl... url) {
+        this(shortName, description, Arrays.asList(url), null, null, null, null, null, null, null, null, null, null, null);
+    }
+    
+    public OpenSearchDescription(final String shortName, final String description, final List<OpenSearchUrl> url) {
+        this(shortName, description, url, null, null, null, null, null, null, null, null, null, null, null);
+    }
     
     public OpenSearchDescription(final String shortName, final String description, final List<OpenSearchUrl> url,
             final String contact, final String tags, final String longName, final List<OpenSearchImage> image,
@@ -44,7 +57,13 @@ public final class OpenSearchDescription {
         this.inputEncoding = inputEncoding;
         this.outputEncoding = outputEncoding;
     }
-
+    
+    @SuppressWarnings("unused")
+    private OpenSearchDescription() {
+        // Workaround for JAXB
+        this(null, null, null, null);
+    }
+    
     @XmlElement(name = "ShortName", required = true)
     public String getShortName() {
         return this.shortName;
@@ -113,5 +132,160 @@ public final class OpenSearchDescription {
     @XmlElement(name = "OutputEncoding")
     public List<String> getOutputEncoding() {
         return this.outputEncoding;
+    }
+    
+    public static final class Builder {
+        
+        private String shortName;
+        private String description;
+        private List<OpenSearchUrl.Builder> urls = new ArrayList<>();
+        private String contact;
+        private StringJoiner tags = new StringJoiner(" ");
+        private String longName;
+        private List<OpenSearchImage.Builder> images = new ArrayList<>();
+        // TODO query
+        private String developer;
+        private String attribution;
+        private SyndicationRights syndicationRight;
+        private Boolean adultContent;
+        private List<String> language = new ArrayList<>();
+        private List<String> inputEncodings = new ArrayList<>();
+        private List<String> outputEncodings = new ArrayList<>();
+        
+        public Builder(final String shortName, final String description) {
+            this.shortName = shortName;
+            this.description = description;
+        }
+        
+        public OpenSearchUrl.Builder url(final String template, final String type) {
+            OpenSearchUrl.Builder urlBuilder = new OpenSearchUrl.Builder(template, type, this);
+            this.urls.add(urlBuilder);
+            return urlBuilder;
+        }
+        
+        public Builder contact(String contact) {
+            this.contact = clear(contact);
+            return this;
+        }
+        
+        public Builder tag(final String tag) {
+            this.tags.add(tag);
+            return this;
+        }
+        
+        public Builder tags(Collection<String> tags) {
+            for(String tag : tags) {
+                tag(tag);
+            }
+            
+            return this;
+        }
+        
+        public Builder tags(String... tags) {
+            return tags(Arrays.asList(tags));
+        }
+        
+        public Builder longName(String longName) {
+            this.longName = clear(longName);
+            return this;
+        }
+        
+        public OpenSearchImage.Builder url(final String url) {
+            OpenSearchImage.Builder imageBuilder = new OpenSearchImage.Builder(url, this);
+            this.images.add(imageBuilder);
+            return imageBuilder;
+        }
+        
+        public Builder developer(String developer) {
+            this.developer = clear(developer);
+            return this;
+        }
+        
+        public Builder attribution(String attribution) {
+            this.attribution = clear(attribution);
+            return this;
+        }
+        
+        public Builder syndicationRight(SyndicationRights syndicationRight) {
+            this.syndicationRight = syndicationRight;
+            return this;
+        }
+        
+        public Builder adultContent(Boolean adultContent) {
+            this.adultContent = adultContent;
+            return this;
+        }
+        
+        public Builder language(String language) {
+            this.language.add(language);
+            return this;
+        }
+        
+        public Builder languages(Collection<String> languages) {
+            for(String language : languages) {
+                language(language);
+            }
+            
+            return this;
+        }
+        
+        public Builder languages(String... languages) {
+            return languages(Arrays.asList(languages));
+        }
+        
+        public Builder inputEncoding(String inputEncoding) {
+            this.inputEncodings.add(inputEncoding);
+            return this;
+        }
+        
+        public Builder inputEncodings(Collection<String> inputEncodings) {
+            for(String inputEncoding : inputEncodings) {
+                inputEncoding(inputEncoding);
+            }
+            
+            return this;
+        }
+        
+        public Builder inputEncodings(String... inputEncodings) {
+            return inputEncodings(Arrays.asList(inputEncodings));
+        }
+        
+        public Builder outputEncoding(String outputEncoding) {
+            this.outputEncodings.add(outputEncoding);
+            return this;
+        }
+        
+        public Builder outputEncodings(Collection<String> outputEncodings) {
+            for(String outputEncoding : outputEncodings) {
+                outputEncoding(outputEncoding);
+            }
+            
+            return this;
+        }
+        
+        public Builder outputEncodings(String... outputEncodings) {
+            return outputEncodings(Arrays.asList(outputEncodings));
+        }
+        
+        private String clear(final String value) {
+            if("".equals(value)) return null;
+            return value;
+        }
+        
+        public OpenSearchDescription build() {
+            // Build the objects
+            List<OpenSearchUrl> urls = this.urls.stream()
+                                            .map(OpenSearchUrl.Builder::build)
+                                            .collect(Collectors.toList());
+            
+            List<OpenSearchImage> images = this.images.stream()
+                                                .map(OpenSearchImage.Builder::build)
+                                                .collect(Collectors.toList());
+            
+            String tags = clear(this.tags.toString());
+            
+            return new OpenSearchDescription(shortName, description, urls, contact, tags, longName, images, developer,
+                    attribution, syndicationRight, adultContent, language, inputEncodings, outputEncodings);
+        }
     }
 }

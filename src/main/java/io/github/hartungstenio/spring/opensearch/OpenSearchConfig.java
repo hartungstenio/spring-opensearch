@@ -2,10 +2,10 @@ package io.github.hartungstenio.spring.opensearch;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Arrays;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import io.github.hartungstenio.spring.opensearch.model.OpenSearchDescription;
-import io.github.hartungstenio.spring.opensearch.model.OpenSearchDescriptionDocumentBuilder;
 
 @Configuration
+@ComponentScan
 public class OpenSearchConfig {
     
     @Bean
@@ -28,16 +28,17 @@ public class OpenSearchConfig {
         
         OpenSearchProvider openSearchProvider = app.findAnnotationOnBean(appConfig[0], OpenSearchProvider.class);
         
-        OpenSearchDescriptionDocumentBuilder openSearchDescriptionDocumentBuilder = new OpenSearchDescriptionDocumentBuilder(openSearchProvider.shortName(), openSearchProvider.description());
-        openSearchDescriptionDocumentBuilder.setTags(openSearchProvider.tags());
-        openSearchDescriptionDocumentBuilder.setLongName(openSearchProvider.longName());
-        openSearchDescriptionDocumentBuilder.setDeveloper(openSearchProvider.developer());
-        openSearchDescriptionDocumentBuilder.setAttribution(openSearchProvider.attribution());
-        openSearchDescriptionDocumentBuilder.setSyndicationRight(openSearchProvider.syndicationRight());
-        openSearchDescriptionDocumentBuilder.setAdultContent(openSearchProvider.adultContent());
-        openSearchDescriptionDocumentBuilder.setLanguage(Arrays.asList(openSearchProvider.language()));
-        openSearchDescriptionDocumentBuilder.setInputEncoding(Arrays.asList(openSearchProvider.inputEncoding()));
-        openSearchDescriptionDocumentBuilder.setOutputEncoding(Arrays.asList(openSearchProvider.outputEncoding()));
+        OpenSearchDescription.Builder openSearchDescriptionDocumentBuilder =
+                new OpenSearchDescription.Builder(openSearchProvider.shortName(), openSearchProvider.description())
+                    .tags(openSearchProvider.tags())
+                    .longName(openSearchProvider.longName())
+                    .developer(openSearchProvider.developer())
+                    .attribution(openSearchProvider.attribution())
+                    .syndicationRight(openSearchProvider.syndicationRight())
+                    .adultContent(openSearchProvider.adultContent())
+                    .languages(openSearchProvider.language())
+                    .inputEncodings(openSearchProvider.inputEncoding())
+                    .outputEncodings(openSearchProvider.outputEncoding());
         
         // Iterate Controllers to find every Url
         for(Object controller : app.getBeansWithAnnotation(Controller.class).values()) {
@@ -47,7 +48,7 @@ public class OpenSearchConfig {
         return openSearchDescriptionDocumentBuilder.build();
     }
     
-    private void findUrlsInControllerAndAppendToDocument(Object controller, OpenSearchDescriptionDocumentBuilder documentBuilder) {
+    private void findUrlsInControllerAndAppendToDocument(Object controller, OpenSearchDescription.Builder documentBuilder) {
         for(Method method : controller.getClass().getMethods()) {
             if(method.isAnnotationPresent(OpenSearchResource.class)) {
                 OpenSearchResource openSearchResource = method.getAnnotation(OpenSearchResource.class);
@@ -62,24 +63,27 @@ public class OpenSearchConfig {
                 }
                 
                 urlTemplate.setLength(urlTemplate.length() - 1);
-                documentBuilder.withUrl(urlTemplate.toString(), openSearchResource.type());
+                documentBuilder.url(urlTemplate.toString(), openSearchResource.type());
             }
         }
     }
     
     private void findParametersAndAppendToUrl(Parameter parameter, StringBuilder urlTemplate) {
         OpenSearchTemplateParameter openSearchTemplateParameter = parameter.getAnnotation(OpenSearchTemplateParameter.class);
+        urlTemplate.append(extractParameterName(parameter));
+        urlTemplate.append('=').append('{').append(openSearchTemplateParameter.name()).append('}');
+    }
+    
+    private String extractParameterName(Parameter parameter) {
         RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
         
         if(requestParam != null && !StringUtils.isEmpty(requestParam.name())) {
-            urlTemplate.append(requestParam.name());
+            return requestParam.name();
         } else {
             MethodParameter methodParameter = MethodParameter.forParameter(parameter);
             methodParameter.initParameterNameDiscovery(new DefaultParameterNameDiscoverer());
-            urlTemplate.append(methodParameter.getParameterName());
+            return methodParameter.getParameterName();
         }
-        
-        urlTemplate.append('=').append('{').append(openSearchTemplateParameter.name()).append('}');
     }
     
     private StringBuilder extractTemplateFromMethod(Method method) {

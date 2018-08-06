@@ -10,12 +10,9 @@ import io.github.hartungstenio.spring.opensearch.model.OpenSearchDescription;
 @RestController
 public class OpenSearchController {
     
-    private final OpenSearchDescription openSearchDescription;
-    
+    // I don't like this syntax, but constructor injection causes a cyclic reference 
     @Autowired
-    public OpenSearchController(final OpenSearchDescription openSearchDescription) {
-        this.openSearchDescription = openSearchDescription;
-    }
+    private OpenSearchDescription openSearchDescription;
     
     @RequestMapping(value = "/content-search.xml", method = RequestMethod.GET, produces = "application/opensearchdescription+xml")
     public OpenSearchDescription getOpenSearchDescriptionDocument() {
