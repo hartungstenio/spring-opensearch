@@ -12,21 +12,16 @@ public final class OpenSearchImage {
     private final Integer width;
     private final String type;
     
-    public OpenSearchImage(final String url) {
-        this(null, null, null, url);
+    private OpenSearchImage(Builder builder) {
+        this.url = builder.url;
+        this.height = builder.height;
+        this.width = builder.width;
+        this.type = builder.type;
     }
     
-    public OpenSearchImage(final String url, final Integer height, final Integer width, final String type) {
-        this.url = url;
-        this.height = height;
-        this.width = width;
-        this.type = type;
-    }
-    
-    @SuppressWarnings("unused")
     private OpenSearchImage() {
         // Workaround for JAXB
-        this(null);
+        this(new Builder(null));
     }
     
     @XmlAttribute(name = "height")
@@ -56,11 +51,8 @@ public final class OpenSearchImage {
         private Integer width;
         private String type;
         
-        private final OpenSearchDescription.Builder openSearchDescription;
-        
-        public Builder(final String url, final OpenSearchDescription.Builder openSearchDescription) {
+        public Builder(final String url) {
             this.url = url;
-            this.openSearchDescription = openSearchDescription;
         }
         
         public Builder height(Integer height) {
@@ -79,11 +71,7 @@ public final class OpenSearchImage {
         }
         
         public OpenSearchImage build() {
-            return new OpenSearchImage(url, height, width, type);
-        }
-        
-        public OpenSearchDescription.Builder and() {
-            return openSearchDescription;
+            return new OpenSearchImage(this);
         }
     }
 }

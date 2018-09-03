@@ -6,32 +6,28 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public final class OpenSearchUrl {
     
+    public static final String RESULTS = "results";
+    public static final String SUGGESTIONS = "suggestions";
+    public static final String SELF = "self";
+    public static final String COLLECTION = "collection";
+    
     private final String template;
     private final String type;
     private final String rel;
     private final Integer indexOffset;
     private final Integer pageOffset;
     
-    public OpenSearchUrl(final String template, final String type) {
-        this(template, type, null);
+    private OpenSearchUrl(Builder builder) {
+        this.template = builder.template;
+        this.type = builder.type;
+        this.rel = builder.rel;
+        this.indexOffset = builder.indexOffset;
+        this.pageOffset = builder.pageOffset;
     }
     
-    public OpenSearchUrl(final String template, final String type, final String rel) {
-        this(template, type, rel, null, null);
-    }
-    
-    @SuppressWarnings("unused")
     private OpenSearchUrl() {
         // Workaround for JAXB
-        this(null, null);
-    }
-    
-    public OpenSearchUrl(final String template, final String type, final String rel, final Integer indexOffset, final Integer pageOffset) {
-        this.template = template;
-        this.type = type;
-        this.rel = rel;
-        this.indexOffset = indexOffset;
-        this.pageOffset = pageOffset;
+        this(new Builder(null, null));
     }
     
     @XmlAttribute(name = "template", required = true)
@@ -67,12 +63,9 @@ public final class OpenSearchUrl {
         private Integer indexOffset;
         private Integer pageOffset;
         
-        private final OpenSearchDescription.Builder openSearchDescription;
-        
-        public Builder(final String template, final String type, final OpenSearchDescription.Builder openSearchDescription) {
+        public Builder(final String template, final String type) {
             this.template = template;
             this.type = type;
-            this.openSearchDescription = openSearchDescription;
         }
         
         public Builder rel(final String rel) {
@@ -91,11 +84,7 @@ public final class OpenSearchUrl {
         }
         
         public OpenSearchUrl build() {
-            return new OpenSearchUrl(template, type, rel, indexOffset, pageOffset);
-        }
-        
-        public OpenSearchDescription.Builder and() {
-            return openSearchDescription;
+            return new OpenSearchUrl(this);
         }
     }
 }
